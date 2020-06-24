@@ -23,12 +23,15 @@ class Crtsh(object):
     def __init__(self):
         pass
 
-    def search(self, query, icaid=None):
+    def search(self, query, icaid=None, exclude=None):
         """
         Search crt.sh with the give query
         Query can be domain, sha1, sha256...
         """
-        r = requests.get('https://crt.sh/', params={'q': query, 'output': 'json'})
+        if exclude is not None:
+            r = requests.get('https://crt.sh/', params={'q': query, 'output': 'json', 'exclude': exclude})
+        if exclude is None:
+            r = requests.get('https://crt.sh/', params={'q': query, 'output': 'json'})
         nameparser = re.compile("([a-zA-Z]+)=(\"[^\"]+\"|[^,]+)")
         certs = []
         for c in r.json():
