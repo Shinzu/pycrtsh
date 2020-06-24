@@ -23,7 +23,7 @@ class Crtsh(object):
     def __init__(self):
         pass
 
-    def search(self, query):
+    def search(self, query, icaid=None):
         """
         Search crt.sh with the give query
         Query can be domain, sha1, sha256...
@@ -32,18 +32,33 @@ class Crtsh(object):
         nameparser = re.compile("([a-zA-Z]+)=(\"[^\"]+\"|[^,]+)")
         certs = []
         for c in r.json():
-            certs.append({
-                'id': c['id'],
-                'logged_at': parse(c['entry_timestamp']),
-                'not_before': parse(c['not_before']),
-                'not_after': parse(c['not_after']),
-                'name': c['name_value'],
-                'ca': {
-                    'caid': c['issuer_ca_id'],
-                    'name': c['issuer_name'],
-                    'parsed_name': dict(nameparser.findall(c['issuer_name']))
-                }
-            })
+            if icaid is not None and c['issuer_ca_id'] == int(icaid):
+                certs.append({
+                    'id': c['id'],
+                    'logged_at': parse(c['entry_timestamp']),
+                    'not_before': parse(c['not_before']),
+                    'not_after': parse(c['not_after']),
+                    'name': c['name_value'],
+                    'ca': {
+                        'caid': c['issuer_ca_id'],
+                        'name': c['issuer_name'],
+                        'parsed_name': dict(nameparser.findall(c['issuer_name']))
+                    }
+                })
+            if icaid is None:
+                certs.append({
+                    'id': c['id'],
+                    'logged_at': parse(c['entry_timestamp']),
+                    'not_before': parse(c['not_before']),
+                    'not_after': parse(c['not_after']),
+                    'name': c['name_value'],
+                    'ca': {
+                        'caid': c['issuer_ca_id'],
+                        'name': c['issuer_name'],
+                        'parsed_name': dict(nameparser.findall(c['issuer_name']))
+                    }
+                })
+
         return certs
 
     def get(self, query, type="sha1"):
