@@ -89,6 +89,7 @@ class Crtsh(object):
             raise CrtshCertificateNotFound()
 
         cert['id'] = lines1[0].td.text
+        cert['summary'] = lines1[1].td.text
         cert['sha256'] = lines1[4].a.text
         cert['sha1'] = lines1[5].td.text
         certinfo = str(lines1[6].td)[60:-6].split('<br/>')
