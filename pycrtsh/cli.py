@@ -57,7 +57,7 @@ def main():
                 ctype = "id"
             res = crt.get(args.VALUE, ctype=ctype)
             print(json.dumps(res, sort_keys=True, indent=4, default=datetime_handler))
-        if args.which == "domain":
+        elif args.which == "domain":
             res = crt.search(args.DOMAIN, args.caid, args.exclude)
             if len(res) == 0:
                 print("No certificate found!")
