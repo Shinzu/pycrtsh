@@ -1,6 +1,7 @@
 import argparse
 import json
 import datetime
+from prettytable import PrettyTable
 from .api import Crtsh
 
 
@@ -19,6 +20,8 @@ def main():
     parser_b = subparsers.add_parser('domain', help='List certs related to a domain')
     parser_b.add_argument('DOMAIN', help='domain')
     parser_b.set_defaults(which='domain')
+    parser_b.add_argument('--caid', action='store', dest='caid', help='Define with which CA ID the search should be narrowed', default=None)
+    parser_b.add_argument('--exclude', action='store', dest='exclude', help='Define wich certificates should be excluded, for now only the keyword "expired" is supported', default=None)
     args = parser.parse_args()
 
     if hasattr(args, 'which'):
@@ -32,26 +35,32 @@ def main():
             res = crt.get(args.VALUE, type=t)
             print(json.dumps(res, sort_keys=True, indent=4, default=datetime_handler))
         elif args.which == "domain":
-            res = crt.search(args.DOMAIN)
+            res = crt.search(args.DOMAIN, args.caid, args.exclude)
             if len(res) == 0:
                 print("No certificate found!")
+
+            table = PrettyTable()
+            table.field_names = [
+                "ID",
+                "Logged at",
+                "Not Before",
+                "Not After",
+                "SAN",
+                "CA"
+            ]
+
             for r in res:
-                if len(str(r["id"])) < 8:
-                    print("%i\t\t%s\t%s\t%s" % (
-                            r["id"],
-                            r["logged_at"].isoformat(),
-                            r["not_before"].isoformat(),
-                            r["ca"]["name"]
-                        )
-                    )
-                else:
-                    print("%i\t%s\t%s\t%s" % (
-                            r["id"],
-                            r["logged_at"].isoformat(),
-                            r["not_before"].isoformat(),
-                            r["ca"]["name"]
-                        )
-                    )
+                row = [
+                    r["id"],
+                    r["logged_at"].isoformat(),
+                    r["not_before"].isoformat(),
+                    r["not_after"].isoformat(),
+                    r["name"],
+                    r["ca"]["name"]
+                ]
+                table.add_row(row)
+
+            return table
         else:
             parser.print_help()
     else:
