@@ -48,7 +48,7 @@ class Crtsh:
         nameparser = re.compile('([a-zA-Z]+)=("[^"]+"|[^,]+)')
         certs = []
         for cert in res.json():
-            if icaid is not None and cert["issuer_ca_id"] == int(icaid):
+            if icaid is not None and cert["issuer_ca_id"] in icaid:
                 certs.append(
                     {
                         "id": cert["id"],

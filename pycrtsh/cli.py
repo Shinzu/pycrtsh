@@ -32,8 +32,9 @@ def main():
     parser_b.set_defaults(which="domain")
     parser_b.add_argument(
         "--caid",
-        action="store",
+        action="append",
         dest="caid",
+        type=int,
         help="Define with which CA ID the search should be narrowed",
         default=None,
     )
