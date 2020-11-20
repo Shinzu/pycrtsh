@@ -1,6 +1,6 @@
 """Lib to query crt.sh."""
-import re
 import json
+import re
 
 import requests
 from bs4 import BeautifulSoup
@@ -209,14 +209,20 @@ class Crtsh:
                     i += 1
                 i -= 1
             if "X509v3\xa0Certificate\xa0Policies:\xa0" in certinfo[i]:
-                cert["extensions"]["certificate_policies"]=[]
-                i+=1
-                while certinfo[i].startswith("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Policy:"):
-                    cert["extensions"]["certificate_policies"].append(certinfo[i][23:].strip())
-                    i+=1
-                    if certinfo[i].startswith("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0CPS:"):
-                        i+=1
-                i -=1
+                cert["extensions"]["certificate_policies"] = []
+                i += 1
+                while certinfo[i].startswith(
+                    "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Policy:"  # noqa: E501 pylint: disable=line-too-long
+                ):
+                    cert["extensions"]["certificate_policies"].append(
+                        certinfo[i][23:].strip()
+                    )
+                    i += 1
+                    if certinfo[i].startswith(
+                        "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0CPS:"  # noqa: E501 pylint: disable=line-too-long
+                    ):
+                        i += 1
+                i -= 1
             if "X509v3\xa0Basic\xa0Constraints:\xa0" in certinfo[i]:
                 i += 1
                 cert["extensions"]["basic_constraints"] = "CA:FALSE" not in certinfo[i]
