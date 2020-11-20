@@ -1,5 +1,6 @@
 """Lib to query crt.sh."""
 import re
+import json
 
 import requests
 from bs4 import BeautifulSoup
@@ -47,41 +48,44 @@ class Crtsh:
             )
         nameparser = re.compile('([a-zA-Z]+)=("[^"]+"|[^,]+)')
         certs = []
-        for cert in res.json():
-            if icaid is not None and cert["issuer_ca_id"] in icaid:
-                certs.append(
-                    {
-                        "id": cert["id"],
-                        "logged_at": parse(cert["entry_timestamp"]),
-                        "not_before": parse(cert["not_before"]),
-                        "not_after": parse(cert["not_after"]),
-                        "name": cert["name_value"],
-                        "ca": {
-                            "caid": cert["issuer_ca_id"],
-                            "name": cert["issuer_name"],
-                            "parsed_name": dict(
-                                nameparser.findall(cert["issuer_name"])
-                            ),
-                        },
-                    }
-                )
-            if icaid is None:
-                certs.append(
-                    {
-                        "id": cert["id"],
-                        "logged_at": parse(cert["entry_timestamp"]),
-                        "not_before": parse(cert["not_before"]),
-                        "not_after": parse(cert["not_after"]),
-                        "name": cert["name_value"],
-                        "ca": {
-                            "caid": cert["issuer_ca_id"],
-                            "name": cert["issuer_name"],
-                            "parsed_name": dict(
-                                nameparser.findall(cert["issuer_name"])
-                            ),
-                        },
-                    }
-                )
+        try:
+            for cert in res.json():
+                if icaid is not None and cert["issuer_ca_id"] in icaid:
+                    certs.append(
+                        {
+                            "id": cert["id"],
+                            "logged_at": parse(cert["entry_timestamp"]),
+                            "not_before": parse(cert["not_before"]),
+                            "not_after": parse(cert["not_after"]),
+                            "name": cert["name_value"],
+                            "ca": {
+                                "caid": cert["issuer_ca_id"],
+                                "name": cert["issuer_name"],
+                                "parsed_name": dict(
+                                    nameparser.findall(cert["issuer_name"])
+                                ),
+                            },
+                        }
+                    )
+                if icaid is None:
+                    certs.append(
+                        {
+                            "id": cert["id"],
+                            "logged_at": parse(cert["entry_timestamp"]),
+                            "not_before": parse(cert["not_before"]),
+                            "not_after": parse(cert["not_after"]),
+                            "name": cert["name_value"],
+                            "ca": {
+                                "caid": cert["issuer_ca_id"],
+                                "name": cert["issuer_name"],
+                                "parsed_name": dict(
+                                    nameparser.findall(cert["issuer_name"])
+                                ),
+                            },
+                        }
+                    )
+        except json.decoder.JSONDecodeError:
+            pass
 
         return certs
 
@@ -204,6 +208,15 @@ class Crtsh:
                     )
                     i += 1
                 i -= 1
+            if "X509v3\xa0Certificate\xa0Policies:\xa0" in certinfo[i]:
+                cert["extensions"]["certificate_policies"]=[]
+                i+=1
+                while certinfo[i].startswith("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Policy:"):
+                    cert["extensions"]["certificate_policies"].append(certinfo[i][23:].strip())
+                    i+=1
+                    if certinfo[i].startswith("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0CPS:"):
+                        i+=1
+                i -=1
             if "X509v3\xa0Basic\xa0Constraints:\xa0" in certinfo[i]:
                 i += 1
                 cert["extensions"]["basic_constraints"] = "CA:FALSE" not in certinfo[i]

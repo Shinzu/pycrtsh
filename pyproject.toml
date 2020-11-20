@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pycrtsh"
-version = "0.3.1"
+version = "0.3.2"
 description = "Python library to request crt.sh certificate information"
 authors = ["Tek <tek@randhome.io>"]
 
